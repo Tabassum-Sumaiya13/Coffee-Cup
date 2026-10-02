@@ -41,6 +41,14 @@
 </header>
 
 <main id="main" class="home">
+
+  <!-- Coffee near you: real places from your live location, floating in 3D
+       around the page. The field ignores pointer events so it never blocks
+       the search; only the cups themselves are clickable. -->
+  <div class="cup-field" id="cup-scene" aria-label="Coffee shops near you">
+    <div class="cup-rail" id="cup-rail"></div>
+  </div>
+
   <div class="home-inner">
     <img class="home-art" src="coffee-cup2.png" alt="" width="132" height="132" aria-hidden="true">
 
@@ -82,6 +90,17 @@
     </div>
 
     <div class="suggestions" id="recent-searches" hidden></div>
+
+    <!-- Shown until location is granted; replaced by the floating cups. -->
+    <div class="nearby-ask" id="nearby-ask">
+      <button type="button" class="link-button" id="nearby-enable">
+        <svg viewBox="0 0 24 24" aria-hidden="true" width="16" height="16"><path d="M12 2v3m0 14v3M2 12h3m14 0h3M12 7a5 5 0 100 10 5 5 0 000-10z" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round"/></svg>
+        Float the coffee near me
+      </button>
+    </div>
+
+    <p class="nearby-sub" id="nearby-sub"></p>
+    <p class="nearby-status" id="nearby-status" role="status" aria-live="polite"></p>
   </div>
 </main>
 
@@ -91,6 +110,7 @@
 
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
+<script src="osm.js"></script>
 <script src="script.js"></script>
 </body>
 </html>

@@ -27,10 +27,12 @@
   };
 
   var map = null;
+  var clusterGroup = null; // holds every marker, grouped when they overlap
   var markers = {};        // cafe id -> Leaflet marker
   var centerMarker = null;
   var radiusCircle = null;
   var inFlight = null;     // AbortController for the running search
+  var pendingFocus = null; // { lat, lon } to open once results arrive
 
   /* ------------------------------------------------------------ elements */
 
@@ -68,16 +70,44 @@
     });
   }
 
+  // Plain OpenStreetMap tiles. CARTO and Stadia both look better, but both now
+  // require an API key, which a static site cannot keep secret - CARTO quietly
+  // serves an "API KEY REQUIRED" watermark tile instead of failing outright.
+  // Dark mode therefore re-tones these tiles in CSS (see .leaflet-tile-pane).
+  var TILE_URL = 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';
+  var TILE_ATTRIBUTION =
+    '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors';
+
   function initMap() {
     map = L.map('map', {
       zoomControl: false,
       attributionControl: true
     }).setView([40.7128, -74.006], 13);
 
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    L.tileLayer(TILE_URL, {
       maxZoom: 19,
-      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+      detectRetina: true,
+      attribution: TILE_ATTRIBUTION
     }).addTo(map);
+
+    // A dense city centre returns hundreds of cafes. Without grouping they
+    // overlap into a solid wall of pins that says nothing.
+    clusterGroup = L.markerClusterGroup({
+      maxClusterRadius: 55,
+      spiderfyOnMaxZoom: true,
+      showCoverageOnHover: false,
+      disableClusteringAtZoom: 17,
+      iconCreateFunction: function (cluster) {
+        var count = cluster.getChildCount();
+        var size = count < 10 ? 'sm' : count < 50 ? 'md' : 'lg';
+        return L.divIcon({
+          className: '',
+          html: '<div class="cluster-pin cluster-' + size + '"><span>' + count + '</span></div>',
+          iconSize: [40, 40]
+        });
+      }
+    });
+    map.addLayer(clusterGroup);
 
     L.control.zoom({ position: 'bottomright' }).addTo(map);
 
@@ -92,9 +122,7 @@
   }
 
   function clearMarkers() {
-    Object.keys(markers).forEach(function (id) {
-      map.removeLayer(markers[id]);
-    });
+    if (clusterGroup) clusterGroup.clearLayers();
     markers = {};
   }
 
@@ -132,7 +160,7 @@
       marker.on('click', function () {
         select(cafe.id, false);
       });
-      marker.addTo(map);
+      clusterGroup.addLayer(marker);
       markers[cafe.id] = marker;
     });
 
@@ -200,6 +228,12 @@
         drawCenter();
         render();
         drawMarkers();
+
+        // Arriving from a tapped cup on the landing page: open that one.
+        if (pendingFocus) {
+          focusNearest(pendingFocus);
+          pendingFocus = null;
+        }
       })
       .catch(function (error) {
         if (controller !== inFlight) return;
@@ -520,13 +554,35 @@
         if (window.matchMedia('(max-width: 900px)').matches) setMobileView('map');
         map.setView([cafe.lat, cafe.lon], Math.max(map.getZoom(), 16), { animate: true });
       }
-      marker.openPopup();
+      // The marker may be hidden inside a cluster, so open that first.
+      clusterGroup.zoomToShowLayer(marker, function () {
+        marker.openPopup();
+      });
     }
 
     if (!fromCard) {
       var card = el.list.querySelector('[data-cafe-id="' + cssEscape(id) + '"]');
       if (card) card.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
     }
+  }
+
+  // Open whichever result sits closest to a given point. Used when the landing
+  // page sends you here after you tapped one of the floating cups.
+  function focusNearest(point) {
+    var best = null;
+    var bestDistance = Infinity;
+
+    for (var i = 0; i < state.visible.length; i++) {
+      var cafe = state.visible[i];
+      var away = OSM.distanceMeters(point.lat, point.lon, cafe.lat, cafe.lon);
+      if (away < bestDistance) {
+        bestDistance = away;
+        best = cafe;
+      }
+    }
+
+    // Only if it really is the same place, not merely the nearest of many.
+    if (best && bestDistance < 60) select(best.id, true);
   }
 
   // Cafe ids look like "node/12345", and the slash needs escaping in a selector.
@@ -695,6 +751,13 @@
     if (radius && [500, 1000, 1500, 3000, 5000].indexOf(radius) !== -1) {
       state.radius = radius;
       el.radius.value = String(radius);
+    }
+
+    var focus = (params.get('focus') || '').split(',');
+    var focusLat = parseFloat(focus[0]);
+    var focusLon = parseFloat(focus[1]);
+    if (isFinite(focusLat) && isFinite(focusLon)) {
+      pendingFocus = { lat: focusLat, lon: focusLon };
     }
 
     if (query) {

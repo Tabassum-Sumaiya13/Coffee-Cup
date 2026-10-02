@@ -80,6 +80,10 @@
 
 *, *::before, *::after { box-sizing: border-box; }
 
+/* An explicit `display` in author CSS beats the browser's rule for [hidden],
+   so elements toggled through the hidden attribute need this to stay hidden. */
+[hidden] { display: none !important; }
+
 html { height: 100%; }
 
 body {
@@ -773,8 +777,8 @@ a:hover { color: var(--accent-hover); }
   background: var(--bg-sunken);
 }
 
-/* OSM serves only light tiles, so dark mode re-tones them here rather than
-   pulling in a second tile provider. */
+/* OpenStreetMap only serves light tiles, and every good-looking dark basemap
+   now needs an API key, so dark mode re-tones the tiles here instead. */
 [data-theme="dark"] .leaflet-tile-pane {
   filter: invert(1) hue-rotate(185deg) brightness(.92) contrast(.88) saturate(.7);
 }
@@ -801,6 +805,44 @@ a:hover { color: var(--accent-hover); }
   transform: rotate(-45deg) scale(1.22);
   z-index: 500;
 }
+
+/* ------------------------------------------------------- marker clusters */
+
+/* The plugin ships its own blue-green bubbles; these replace them so the map
+   matches the rest of the app. */
+.cluster-pin {
+  display: grid;
+  place-items: center;
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  background: var(--accent);
+  color: var(--on-accent);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  border: 2px solid var(--surface);
+  box-shadow: 0 3px 10px rgba(58, 36, 25, .4);
+  transition: transform .15s ease;
+}
+
+/* A ring that grows with the group, so size reads before the number does. */
+.cluster-pin::before {
+  content: "";
+  position: absolute;
+  inset: -6px;
+  border-radius: 50%;
+  background: var(--accent);
+  opacity: .22;
+}
+
+.cluster-sm { font-size: .8rem; }
+.cluster-md { font-size: .84rem; transform: scale(1.12); }
+.cluster-lg { font-size: .86rem; transform: scale(1.26); }
+
+.marker-cluster:hover .cluster-pin { transform: scale(1.14); }
+.marker-cluster-md:hover .cluster-pin { transform: scale(1.24); }
+
+.leaflet-marker-icon .cluster-pin span { position: relative; }
 
 .marker-center {
   width: 16px; height: 16px;
@@ -1051,4 +1093,278 @@ a:hover { color: var(--accent-hover); }
   .results-shell { grid-template-columns: 1fr; }
   .results-list { overflow: visible; }
   .cafe-card { break-inside: avoid; box-shadow: none; }
+}
+
+/* ==========================================================================
+   Coffee near you - cup illustrations drifting across the landing page
+   Flat 2D artwork with a gentle float. The field covers the hero and ignores
+   pointer events, so the search stays usable; only the cups are clickable.
+   Before a location is shared the same cups drift on their own as decoration.
+   ========================================================================== */
+
+.home { position: relative; }
+
+.cup-field {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;      /* the field never blocks the hero */
+  overflow: hidden;
+}
+
+.cup-rail { position: absolute; inset: 0; }
+
+/* The hero sits above the drifting cups. */
+.home-inner {
+  position: relative;
+  z-index: 3;
+}
+
+.nearby-ask { margin-top: 22px; }
+
+.nearby-sub {
+  margin-top: 16px;
+  font-size: .9rem;
+  color: var(--text-soft);
+}
+
+.nearby-status {
+  margin-top: 8px;
+  min-height: 20px;
+  font-size: .88rem;
+  color: var(--text-faint);
+}
+
+/* --------------------------------------------------------------- the cup */
+
+.cup {
+  position: absolute;
+  left: var(--x, 50%);
+  top: var(--y, 50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  width: var(--w, 140px);
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  color: inherit;
+  text-align: center;
+  pointer-events: auto;      /* the cups themselves stay clickable */
+  /* Each cup drifts on its own clock, staggered by its index. */
+  animation: cup-float 7s ease-in-out infinite;
+  animation-delay: calc(var(--i, 0) * -1.15s);
+}
+
+@keyframes cup-float {
+  0%, 100% { transform: translate(-50%, -50%) translateY(0)     rotate(var(--tilt, 0deg)); }
+  50%      { transform: translate(-50%, -50%) translateY(-16px) rotate(calc(var(--tilt, 0deg) * -1)); }
+}
+
+.cup-art {
+  display: block;
+  width: 100%;
+  height: auto;
+  opacity: var(--fade, 1);
+  filter: drop-shadow(0 12px 16px rgba(58, 36, 25, .22));
+  transition: transform .25s ease, filter .25s ease;
+}
+[data-theme="dark"] .cup-art {
+  filter: drop-shadow(0 12px 18px rgba(0, 0, 0, .55));
+}
+
+/* ------------------------------------------------------- the label card */
+
+.cup-label {
+  display: block;
+  width: 100%;
+  padding: 8px 10px 9px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+  box-shadow: var(--shadow-sm);
+  /* The label keeps its own width so a small cup does not squash the text,
+     and it never takes the depth fade, which would hurt readability. */
+  min-width: 136px;
+  transition: transform .25s ease, box-shadow .25s ease, border-color .25s ease;
+}
+
+.cup-name {
+  display: -webkit-box;
+  font-size: .84rem;
+  font-weight: 700;
+  line-height: 1.25;
+  color: var(--text);
+  /* Names vary a lot in length, so allow two lines and then clip. */
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.cup-status {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  margin-top: 4px;
+  font-size: .72rem;
+  font-weight: 650;
+}
+.cup-status .dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+.cup-distance {
+  display: block;
+  margin-top: 2px;
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--accent);
+  font-variant-numeric: tabular-nums;
+}
+
+.cup-badges {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 3px;
+  margin-top: 6px;
+}
+.cup-badges .badge {
+  padding: 2px 6px;
+  font-size: .64rem;
+}
+
+/* ------------------------------------------------------------ interaction */
+
+.cup[data-cafe-lat] { cursor: pointer; }
+
+.cup[data-cafe-lat]:hover,
+.cup[data-cafe-lat]:focus-visible { z-index: 10; }
+
+.cup[data-cafe-lat]:hover .cup-art,
+.cup[data-cafe-lat]:focus-visible .cup-art {
+  transform: translateY(-6px) scale(1.07);
+  opacity: 1;
+  filter: drop-shadow(0 18px 22px rgba(58, 36, 25, .32));
+}
+
+.cup[data-cafe-lat]:hover .cup-label,
+.cup[data-cafe-lat]:focus-visible .cup-label {
+  transform: translateY(-4px);
+  border-color: var(--accent);
+  box-shadow: var(--shadow);
+  opacity: 1;
+}
+
+.cup:focus { outline: none; }
+.cup:focus-visible .cup-label {
+  outline: 3px solid var(--focus);
+  outline-offset: 3px;
+}
+
+/* ------------------------------------------------- decorative (no data) */
+
+/* Shown before a location is shared, and when nothing is mapped nearby. */
+.cup.is-decor {
+  pointer-events: none;
+  cursor: default;
+}
+.cup.is-decor .cup-art { opacity: var(--fade, .4); }
+
+/* ---------------------------------------------------------- loading cups */
+
+.cup.is-loading { pointer-events: none; }
+.cup.is-loading .cup-name,
+.cup.is-loading .cup-status,
+.cup.is-loading .cup-distance {
+  color: transparent;
+  background: var(--bg-sunken);
+  border-radius: 6px;
+  animation: pulse 1.4s ease-in-out infinite;
+}
+
+/* ============================================================ responsive */
+
+/* The scattered field needs width. On tablets and phones the cups become a
+   swipeable row under the hero, which stays readable and easy to tap. */
+@media (max-width: 900px) {
+  /* .home centres a single hero on desktop. Once the cup field joins the flow
+     it becomes a second flex item, so the row has to become a column and the
+     hero has to keep its place above the cups. */
+  .home {
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+  }
+  .home-inner { order: 1; }
+
+  .cup-field {
+    order: 2;
+    position: static;
+    width: 100%;
+    overflow: visible;
+    margin-top: 24px;
+  }
+
+  .cup-rail {
+    position: static;
+    display: flex;
+    align-items: flex-end;
+    gap: 14px;
+    padding: 8px max(16px, calc(50vw - 140px)) 20px;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+  .cup-rail::-webkit-scrollbar { display: none; }
+
+  .cup {
+    position: relative;
+    left: auto;
+    top: auto;
+    flex: 0 0 auto;
+    width: 138px;
+    scroll-snap-align: center;
+    /* Flatten the staged depth so every cup reads equally while swiping. */
+    --fade: 1;
+    --tilt: 0deg;
+    animation-name: cup-float-flat;
+  }
+
+  @keyframes cup-float-flat {
+    0%, 100% { transform: translateY(0); }
+    50%      { transform: translateY(-10px); }
+  }
+
+  /* Decorative cups carry no text, so a scroll row would look empty. */
+  .cup-rail.is-decor-only {
+    justify-content: center;
+    padding-inline: 16px;
+    overflow-x: hidden;
+  }
+  .cup-rail.is-decor-only .cup { width: clamp(72px, 21vw, 104px); }
+  .cup-rail.is-decor-only .cup:nth-child(n + 5) { display: none; }
+}
+
+@media (max-width: 420px) {
+  .cup { width: 128px; }
+  .cup-distance { font-size: .94rem; }
+  .cup-name { font-size: .79rem; }
+}
+
+/* Drifting artwork is exactly what reduced-motion asks us to stop. */
+@media (prefers-reduced-motion: reduce) {
+  .cup { animation: none; transform: translate(-50%, -50%); }
+}
+@media (prefers-reduced-motion: reduce) and (max-width: 900px) {
+  .cup { transform: none; }
 }
