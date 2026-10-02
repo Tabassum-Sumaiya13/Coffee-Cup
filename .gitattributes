@@ -1,0 +1,6 @@
+# Keep line endings consistent for everyone working on the repo.
+* text=auto eol=lf
+
+*.png binary
+*.jpg binary
+*.svg text eol=lf

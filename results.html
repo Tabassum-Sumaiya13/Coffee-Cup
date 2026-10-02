@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Coffee shops near you — CoffeeCup</title>
+<meta name="description" content="Coffee shops on a live map, with opening hours, Wi-Fi, outdoor seating and step-free access.">
+<meta name="theme-color" content="#f3e2d4">
+<meta name="color-scheme" content="light dark">
+<meta name="robots" content="noindex">
+
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+
+<link rel="preconnect" href="https://nominatim.openstreetmap.org" crossorigin>
+<link rel="preconnect" href="https://lambert.openstreetmap.de" crossorigin>
+
+<link rel="stylesheet"
+      href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+      integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+      crossorigin="">
+<!-- Loaded here, before paint, so the theme never flashes. -->
+<script src="shared.js"></script>
+
+<link rel="stylesheet" href="style.css">
+</head>
+<body class="page-results">
+
+<a class="skip-link" href="#results-list">Skip to results</a>
+
+<header class="top-bar">
+  <a class="brand" href="index.html">
+    <img src="favicon.svg" alt="" width="24" height="24" aria-hidden="true">
+    <span>CoffeeCup</span>
+  </a>
+
+  <form class="search-form search-form-compact" id="results-search-form" role="search" novalidate>
+    <label class="visually-hidden" for="results-search-input">City, address or postcode</label>
+    <div class="search-field">
+      <svg class="search-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M10 2a8 8 0 105.3 14l5.4 5.4 1.4-1.4-5.4-5.4A8 8 0 0010 2zm0 2a6 6 0 110 12 6 6 0 010-12z" fill="currentColor"/></svg>
+      <input
+        type="search"
+        id="results-search-input"
+        class="search-input"
+        placeholder="Search another place"
+        autocomplete="off"
+        enterkeyhint="search"
+        spellcheck="false">
+    </div>
+    <button type="submit" class="button button-primary">Search</button>
+  </form>
+
+  <div class="top-actions">
+    <button type="button" class="icon-button" id="results-locate" title="Use my location" aria-label="Use my location">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2v3m0 14v3M2 12h3m14 0h3M12 7a5 5 0 100 10 5 5 0 000-10z" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round"/></svg>
+    </button>
+    <button type="button" class="icon-button" data-theme-toggle aria-pressed="false">
+      <svg class="icon-sun" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 7a5 5 0 100 10 5 5 0 000-10zm0-5v3m0 14v3M4.2 4.2l2.1 2.1m11.4 11.4l2.1 2.1M2 12h3m14 0h3M4.2 19.8l2.1-2.1M17.7 6.3l2.1-2.1" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round"/></svg>
+      <svg class="icon-moon" viewBox="0 0 24 24" aria-hidden="true"><path d="M21 12.8A9 9 0 1111.2 3a7 7 0 009.8 9.8z" fill="currentColor"/></svg>
+    </button>
+  </div>
+</header>
+
+<div class="results-shell" data-mobile-view="list">
+
+  <section class="list-pane" aria-labelledby="results-count">
+    <div class="list-head">
+      <div class="list-head-text">
+        <h1 class="results-count" id="results-count" aria-live="polite"></h1>
+        <p class="results-place" id="results-place"></p>
+      </div>
+
+      <div class="list-controls">
+        <label class="visually-hidden" for="sort-select">Sort results</label>
+        <select id="sort-select" class="select">
+          <option value="distance">Nearest first</option>
+          <option value="open">Open now first</option>
+          <option value="name">Name A–Z</option>
+        </select>
+
+        <label class="visually-hidden" for="radius-select">Search radius</label>
+        <select id="radius-select" class="select">
+          <option value="500">500 m</option>
+          <option value="1000">1 km</option>
+          <option value="1500" selected>1.5 km</option>
+          <option value="3000">3 km</option>
+          <option value="5000">5 km</option>
+        </select>
+
+        <div class="filter-wrap">
+          <button type="button" class="button button-quiet" id="filter-toggle"
+                  aria-expanded="false" aria-controls="filter-panel">
+            Filters
+            <span class="filter-badge" id="filter-count" hidden></span>
+          </button>
+
+          <div class="filter-panel" id="filter-panel" hidden>
+            <p class="filter-title">Show only places with</p>
+            <label class="check"><input type="checkbox" data-filter="open"><span>Open right now</span></label>
+            <label class="check"><input type="checkbox" data-filter="wifi"><span>Wi-Fi</span></label>
+            <label class="check"><input type="checkbox" data-filter="outdoor"><span>Outdoor seating</span></label>
+            <label class="check"><input type="checkbox" data-filter="takeaway"><span>Takeaway</span></label>
+            <label class="check"><input type="checkbox" data-filter="step"><span>Step-free access</span></label>
+            <p class="filter-note">Filters use what OpenStreetMap records, so a place with no tag is left out.</p>
+          </div>
+        </div>
+
+        <button type="button" class="link-button" id="clear-filters" hidden>Clear filters</button>
+      </div>
+    </div>
+
+    <div class="results-list" id="results-list"></div>
+  </section>
+
+  <section class="map-pane" aria-label="Map of results">
+    <div id="map"></div>
+  </section>
+
+  <div class="view-toggle" id="view-toggle" role="tablist" aria-label="Switch between list and map">
+    <button type="button" data-view="list" class="is-active" role="tab" aria-selected="true">List</button>
+    <button type="button" data-view="map" role="tab" aria-selected="false">Map</button>
+  </div>
+</div>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+        integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+        crossorigin=""></script>
+<script src="osm.js"></script>
+<script src="results.js"></script>
+</body>
+</html>

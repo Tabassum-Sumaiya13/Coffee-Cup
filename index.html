@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CoffeeCup — Find coffee shops near you</title>
+<meta name="description" content="Find coffee shops near any city, address or postcode. See what is open now, who has Wi-Fi and outdoor seating, on a live map. Built on OpenStreetMap.">
+<meta name="theme-color" content="#f3e2d4">
+<meta name="color-scheme" content="light dark">
+
+<meta property="og:type" content="website">
+<meta property="og:title" content="CoffeeCup — Find coffee shops near you">
+<meta property="og:description" content="Search any city or postcode and see coffee shops on a map, with opening hours, Wi-Fi and outdoor seating.">
+<meta name="twitter:card" content="summary">
+
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="coffee-cup2.png">
+
+<!-- Nominatim and Overpass are contacted as soon as a search starts. -->
+<link rel="preconnect" href="https://nominatim.openstreetmap.org" crossorigin>
+<link rel="dns-prefetch" href="https://lambert.openstreetmap.de">
+
+<!-- Loaded here, before paint, so the theme never flashes. -->
+<script src="shared.js"></script>
+
+<link rel="stylesheet" href="style.css">
+</head>
+<body class="page-home">
+
+<a class="skip-link" href="#main">Skip to content</a>
+
+<header class="home-bar">
+  <span class="brand">
+    <img src="favicon.svg" alt="" width="26" height="26" aria-hidden="true">
+    CoffeeCup
+  </span>
+  <button type="button" class="icon-button" data-theme-toggle aria-pressed="false">
+    <svg class="icon-sun" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 7a5 5 0 100 10 5 5 0 000-10zm0-5v3m0 14v3M4.2 4.2l2.1 2.1m11.4 11.4l2.1 2.1M2 12h3m14 0h3M4.2 19.8l2.1-2.1M17.7 6.3l2.1-2.1" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round"/></svg>
+    <svg class="icon-moon" viewBox="0 0 24 24" aria-hidden="true"><path d="M21 12.8A9 9 0 1111.2 3a7 7 0 009.8 9.8z" fill="currentColor"/></svg>
+  </button>
+</header>
+
+<main id="main" class="home">
+  <div class="home-inner">
+    <img class="home-art" src="coffee-cup2.png" alt="" width="132" height="132" aria-hidden="true">
+
+    <h1 class="home-title">CoffeeCup</h1>
+    <p class="home-tagline">Find the coffee near you. See what is open right now.</p>
+
+    <form class="search-form" id="search-form" role="search" novalidate>
+      <label class="visually-hidden" for="search-input">City, address or postcode</label>
+      <div class="search-field">
+        <svg class="search-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M10 2a8 8 0 105.3 14l5.4 5.4 1.4-1.4-5.4-5.4A8 8 0 0010 2zm0 2a6 6 0 110 12 6 6 0 010-12z" fill="currentColor"/></svg>
+        <input
+          type="search"
+          id="search-input"
+          class="search-input"
+          placeholder="Try Brooklyn, Shoreditch or 10001"
+          autocomplete="off"
+          enterkeyhint="search"
+          spellcheck="false">
+      </div>
+      <button type="submit" class="button button-primary">Search</button>
+    </form>
+
+    <p class="form-hint" id="search-hint" role="status"></p>
+
+    <button type="button" class="link-button locate-link" id="locate-button">
+      <svg viewBox="0 0 24 24" aria-hidden="true" width="16" height="16"><path d="M12 2v3m0 14v3M2 12h3m14 0h3M12 7a5 5 0 100 10 5 5 0 000-10z" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round"/></svg>
+      Use my location
+    </button>
+
+    <div class="suggestions">
+      <span class="recent-label">Popular right now</span>
+      <div class="chip-row">
+        <button type="button" class="chip" data-query="Brooklyn, New York">Brooklyn</button>
+        <button type="button" class="chip" data-query="Shoreditch, London">Shoreditch</button>
+        <button type="button" class="chip" data-query="Le Marais, Paris">Le Marais</button>
+        <button type="button" class="chip" data-query="Kreuzberg, Berlin">Kreuzberg</button>
+        <button type="button" class="chip" data-query="Trastevere, Rome">Trastevere</button>
+      </div>
+    </div>
+
+    <div class="suggestions" id="recent-searches" hidden></div>
+  </div>
+</main>
+
+<footer class="home-foot">
+  <p>Place data from <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer">OpenStreetMap</a> contributors. No account, no tracking.</p>
+</footer>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script src="script.js"></script>
+</body>
+</html>
