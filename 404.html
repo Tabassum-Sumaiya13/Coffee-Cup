@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Page not found — CoffeeCup</title>
+<meta name="robots" content="noindex">
+<meta name="theme-color" content="#f3e2d4">
+<meta name="color-scheme" content="light dark">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<!-- Loaded here, before paint, so the theme never flashes. -->
+<script src="shared.js"></script>
+
+<link rel="stylesheet" href="style.css">
+</head>
+<body class="page-home">
+
+<header class="home-bar">
+  <a class="brand" href="index.html">
+    <img src="favicon.svg" alt="" width="26" height="26" aria-hidden="true">
+    CoffeeCup
+  </a>
+  <button type="button" class="icon-button" data-theme-toggle aria-pressed="false">
+    <svg class="icon-sun" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 7a5 5 0 100 10 5 5 0 000-10zm0-5v3m0 14v3M4.2 4.2l2.1 2.1m11.4 11.4l2.1 2.1M2 12h3m14 0h3M4.2 19.8l2.1-2.1M17.7 6.3l2.1-2.1" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round"/></svg>
+    <svg class="icon-moon" viewBox="0 0 24 24" aria-hidden="true"><path d="M21 12.8A9 9 0 1111.2 3a7 7 0 009.8 9.8z" fill="currentColor"/></svg>
+  </button>
+</header>
+
+<main class="home">
+  <div class="home-inner">
+    <h1 class="home-title">Nothing brewing here</h1>
+    <p class="home-tagline">That page does not exist. Let's get you back to the coffee.</p>
+    <p style="margin-top:26px"><a class="button button-primary" href="index.html">Back to search</a></p>
+  </div>
+</main>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+</body>
+</html>

@@ -1,0 +1,15 @@
+{
+  "name": "coffeecup",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Find coffee shops near any place, on a map, using OpenStreetMap data.",
+  "license": "MIT",
+  "scripts": {
+    "start": "npx --yes serve . -l 5173",
+    "dev": "npx --yes serve . -l 5173",
+    "test": "node test/opening-hours.test.js",
+    "check": "node test/syntax-check.js"
+  },
+  "keywords": ["coffee", "openstreetmap", "leaflet", "map"],
+  "browserslist": ["> 0.3%", "last 2 versions", "not dead"]
+}
